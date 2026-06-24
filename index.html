@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UNDERGROUND // AUDIO ARCHIVE</title>
+    <title>LUCKMAKESMUSIC // AUDIO ARCHIVE</title>
     <style>
         /* --- DESIGN SYSTEM & CSS VARIABLES --- */
         :root {
@@ -33,6 +33,64 @@
             line-height: 1.6;
         }
 
+        /* --- GLOBAL BACKGROUND AUDIO CONTROLLER (TOP RIGHT) --- */
+        .global-audio-controller {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-left: 3px solid var(--accent-green);
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .mute-btn {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 4px 8px;
+            cursor: pointer;
+            font-family: var(--font-stack);
+            font-size: 0.7rem;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        .mute-btn:hover {
+            color: var(--accent-green);
+            border-color: var(--accent-green);
+        }
+
+        .volume-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 80px;
+            height: 4px;
+            background: #222;
+            outline: none;
+            border-radius: 2px;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 10px;
+            height: 10px;
+            background: var(--accent-green);
+            cursor: pointer;
+            border-radius: 5px;
+            box-shadow: 0 0 5px var(--accent-green);
+        }
+
         /* --- THE MATRIX BACKGROUND VIDEO CONTAINER --- */
         .video-bg-container {
             position: fixed;
@@ -56,7 +114,7 @@
             width: auto;
             height: auto;
             object-fit: cover;
-            opacity: 0.25; /* Blends it darkly into the grunge theme */
+            opacity: 0.25;
             filter: grayscale(40%) contrast(120%);
         }
 
@@ -73,7 +131,7 @@
             border: 1px solid var(--border-color);
             box-shadow: 0 0 20px rgba(0,0,0,0.7);
             filter: hue-rotate(45deg) brightness(0.8);
-            display: none; /* Hidden on mobile */
+            display: none;
         }
         .side-video.left { left: 40px; }
         .side-video.right { right: 40px; }
@@ -218,46 +276,24 @@
             text-align: justify;
         }
 
-        /* --- MUSIC TRACKS GRID --- */
-        .music-grid {
+        /* --- SPOTIFY EMBED SECTION --- */
+        .spotify-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 15px;
+            gap: 20px;
         }
 
-        .track-card {
-            background: rgba(0,0,0,0.5);
-            border: 1px solid var(--border-color);
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .track-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .track-title {
-            font-size: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--accent-purple);
-        }
-
-        .track-meta {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-
-        /* Audio Player Styling */
-        audio {
+        .spotify-container {
             width: 100%;
-            height: 32px;
-            outline: none;
-            filter: invert(90%) hue-rotate(180deg); /* Dark-mode audio bars natively */
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            padding: 6px;
+            border-radius: 8px;
+        }
+
+        iframe {
+            border-radius: 4px;
+            display: block;
         }
 
         /* --- FOOTER --- */
@@ -271,7 +307,6 @@
 
         /* --- RESPONSIVE MEDIA QUERIES --- */
         @media (min-width: 1350px) {
-            /* Only show the dual vertical videos if screen is wide enough */
             .side-video { display: block; }
             .main-wrapper { max-width: 700px; }
         }
@@ -280,27 +315,38 @@
             .socials-grid { grid-template-columns: 1fr; }
             .main-wrapper { padding: 20px 10px; }
             .crt-panel { padding: 20px; }
+            .global-audio-controller { top: auto; bottom: 20px; right: 20px; } /* Shifts tracking control on mobile */
         }
     </style>
 </head>
 <body>
 
+    <!-- HIDDEN AUDIO SOURCE FOR AUTOPLAY BACKING TRACK -->
+    <!-- REPLACE 'background_music.mp3' with your audio file name -->
+    <audio id="bg-audio" loop>
+        <source src="One of One (prod. Bin God).mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- FIXED CONTROLLER (TOP RIGHT) -->
+    <div class="global-audio-controller">
+        <span style="color: var(--accent-green);" id="audio-status">AUDIO://STDBY</span>
+        <button class="mute-btn" id="mute-toggle">MUTE</button>
+        <input type="range" class="volume-slider" id="volume-control" min="0" max="1" step="0.05" value="0.5">
+    </div>
+
     <!-- VIDEO BACKGROUND LAYER -->
     <div class="video-bg-container">
-        <!-- Center Landscape Video Background -->
-        <!-- REPLACE 'landscape_video_url.mp4' with your link -->
         <video class="bg-video-landscape" autoplay loop muted playsinline>
             <source src="oneofone.mp4" type="video/mp4">
         </video>
     </div>
 
     <!-- Left & Right Wing Vertical Videos (Desktop Layout only) -->
-    <!-- REPLACE 'vertical_video_url.mp4' with your link -->
     <video class="side-video left" autoplay loop muted playsinline>
         <source src="blowthewhistlevisVERT.mp4" type="video/mp4">
     </video>
     <video class="side-video right" autoplay loop muted playsinline>
-        <source src="vertical_video_url.mp4" type="video/mp4">
+        <source src="blowthewhistlevisVERT.mp4" type="video/mp4">
     </video>
 
     <!-- CONTENT CONTAINER -->
@@ -309,7 +355,6 @@
         <!-- HEADER & SOCIALS -->
         <header class="crt-panel">
             <div class="pfp-container">
-                <!-- REPLACE 'pfp.jpg' with your image file name or link -->
                 <img src="mebnw.png" alt="Profile Picture">
             </div>
             
@@ -321,7 +366,6 @@
             <div class="socials-headline">socials</div>
             
             <div class="socials-grid">
-                <!-- REPLACE '#' with your actual social links -->
                 <a href="https://soundcloud.com/luckwastaken" target="_blank" class="social-btn">SoundCloud</a>
                 <a href="https://open.spotify.com/artist/4JMhV4uLsJwnIjAI4SvI4U?si=I_THoaPsRce5Rb-uMHYeVw" target="_blank" class="social-btn">Spotify</a>
                 <a href="https://www.instagram.com/luckmakesmusic/" target="_blank" class="social-btn">Instagram</a>
@@ -337,47 +381,20 @@
             </p>
         </section>
 
-        <!-- AUDIO / SONG SHOWCASE GRID -->
+        <!-- SPOTIFY TRANSMISSIONS REGION -->
         <section class="crt-panel">
-            <h2 class="section-title">TRANSMISSIONS // 4 RECENT TRACKS</h2>
+            <h2 class="section-title">TRANSMISSIONS // SPOTIFY ARCHIVE</h2>
             
-            <div class="music-grid">
+            <div class="spotify-grid">
                 
-                <!-- Track 1 -->
-                <div class="track-card">
-                    <div class="track-header">
-                        <span class="track-title">TRACK_01_KILLSWITCH</span>
-                        <span class="track-meta">MP3 // 140 BPM</span>
-                    </div>
-                    <!-- REPLACE 'song1.mp3' with your file name/link -->
-                    <audio controls><source src="song1.mp3" type="audio/mpeg"></audio>
-                </div>
+                <!-- Spotify Link / Track 1 -->
+                <!-- Replace URL inside src="..." with your own share embed links if needed -->
+                <div class="spotify-container">
+                  <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/track/7fvppMLfJxg1orzyQze7jy?utm_source=generator&theme=0&si=9387802c6ce14d59" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
 
-                <!-- Track 2 -->
-                <div class="track-card">
-                    <div class="track-header">
-                        <span class="track-title">TRACK_02_CYBER_JERK</span>
-                        <span class="track-meta">MP3 // 145 BPM</span>
-                    </div>
-                    <audio controls><source src="song2.mp3" type="audio/mpeg"></audio>
-                </div>
-
-                <!-- Track 3 -->
-                <div class="track-card">
-                    <div class="track-header">
-                        <span class="track-title">TRACK_03_PLUGG_NET</span>
-                        <span class="track-meta">MP3 // 130 BPM</span>
-                    </div>
-                    <audio controls><source src="song3.mp3" type="audio/mpeg"></audio>
-                </div>
-
-                <!-- Track 4 -->
-                <div class="track-card">
-                    <div class="track-header">
-                        <span class="track-title">TRACK_04_OVERCLOCK</span>
-                        <span class="track-meta">MP3 // 150 BPM</span>
-                    </div>
-                    <audio controls><source src="song4.mp3" type="audio/mpeg"></audio>
+                <!-- Spotify Link / Track 2 -->
+                <div class="spotify-container">
+                    <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/track/2kd4Cj34b5XAWO1V3kZvnc?utm_source=generator&theme=0&si=caf7d5663861430a" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
                 </div>
 
             </div>
@@ -390,5 +407,51 @@
 
     </div>
 
+    <!-- AUDIO ENGINE SCRIPT CONTROLLER -->
+    <script>
+        const audio = document.getElementById('bg-audio');
+        const muteBtn = document.getElementById('mute-toggle');
+        const volumeSlider = document.getElementById('volume-control');
+        const statusText = document.getElementById('audio-status');
+
+        // Set baseline parameters
+        audio.volume = volumeSlider.value;
+
+        // Bypass browser automation blocks on first user interaction click
+        window.addEventListener('click', () => {
+            if (audio.paused && statusText.innerText === "AUDIO://STDBY") {
+                audio.play()
+                    .then(() => {
+                        statusText.innerText = "AUDIO://PLAYING";
+                        statusText.style.color = "#9d4edd";
+                    })
+                    .catch(err => console.log("Autoplay context initialization waiting."));
+            }
+        });
+
+        // Volume manipulation slider mapping
+        volumeSlider.addEventListener('input', (e) => {
+            audio.volume = e.target.value;
+            if (audio.volume > 0) {
+                audio.muted = false;
+                muteBtn.innerText = "MUTE";
+            }
+        });
+
+        // Mute state logic handler
+        muteBtn.addEventListener('click', () => {
+            if (audio.muted) {
+                audio.muted = false;
+                muteBtn.innerText = "MUTE";
+                statusText.innerText = "AUDIO://PLAYING";
+                statusText.style.color = "#9d4edd";
+            } else {
+                audio.muted = true;
+                muteBtn.innerText = "UNMUTE";
+                statusText.innerText = "AUDIO://MUTED";
+                statusText.style.color = "#64748b";
+            }
+        });
+    </script>
 </body>
 </html>
