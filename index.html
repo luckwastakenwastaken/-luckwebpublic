@@ -33,11 +33,12 @@
             line-height: 1.6;
         }
 
-        /* --- SPLASH GATE SCREEN (BUILT-IN FIX FOR AUDIO AUTOPLAY) --- */
+        /* --- SPLASH GATE SCREEN (UPDATED TO 70% OPACITY) --- */
         #splash-gate {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #050507;
+            background: rgba(5, 5, 7, 0.7); /* 70% opacity allows background to show through */
+            backdrop-filter: blur(8px); /* Adds a sick distorted frosted glass look */
             z-index: 9999;
             display: flex;
             flex-direction: column;
@@ -49,7 +50,7 @@
         }
         
         .enter-btn {
-            background: transparent;
+            background: #050507;
             border: 1px solid var(--accent-green);
             color: var(--accent-green);
             padding: 15px 30px;
@@ -68,9 +69,11 @@
         }
 
         .gate-tag {
-            color: var(--text-muted);
+            color: #fff;
+            text-shadow: 0 0 5px var(--accent-purple);
             font-size: 0.8rem;
             letter-spacing: 2px;
+            font-weight: bold;
         }
 
         /* --- GLOBAL BACKGROUND AUDIO CONTROLLER (TOP RIGHT) --- */
@@ -363,10 +366,10 @@
 
     <div id="splash-gate">
         <button class="enter-btn" id="gate-btn">LOAD ARCHIVE</button>
-        <span class="gate-tag">[ ENCRYPTED CONNECTION ]</span>
+        <span class="gate-tag">[ CLICK TO INITIALIZE AUDIO ]</span>
     </div>
 
-    <audio id="bg-audio" loop>
+    <audio id="bg-audio" loop prefetch="auto">
         <source src="oneofone.mp3" type="audio/mpeg">
     </audio>
 
@@ -450,23 +453,27 @@
 
         audio.volume = volumeSlider.value;
 
-        // Force launch straight from the splash screen button interaction
+        // Function that removes the screen overlay cleanly
+        function clearGate() {
+            gate.style.opacity = '0';
+            setTimeout(() => {
+                gate.style.visibility = 'hidden';
+            }, 500);
+        }
+
+        // Click handler with built-in system safety
         gateBtn.addEventListener('click', () => {
             audio.play()
                 .then(() => {
                     statusText.innerText = "AUDIO://PLAYING";
                     statusText.style.color = "#9d4edd";
-                    // Hide the splash panel smoothly
-                    gate.style.opacity = '0';
-                    setTimeout(() => {
-                        gate.style.visibility = 'hidden';
-                    }, 500);
+                    clearGate(); // Close screen because audio succeeded
                 })
                 .catch(err => {
-                    console.log("Audio load error:", err);
-                    // Hide gate anyway so users can see the site if file fails
-                    gate.style.opacity = '0';
-                    gate.style.visibility = 'hidden';
+                    console.log("Audio pipeline failed, bypass executed:", err);
+                    statusText.innerText = "AUDIO://ERR_LOAD";
+                    statusText.style.color = "#ff3333";
+                    clearGate(); // Force screen clear even if audio fails to locate
                 });
         });
 
