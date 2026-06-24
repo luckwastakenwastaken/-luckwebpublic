@@ -2,16 +2,393 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>My Free Site</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNDERGROUND // AUDIO ARCHIVE</title>
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; }
-        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        /* --- DESIGN SYSTEM & CSS VARIABLES --- */
+        :root {
+            --bg-color: #0a0a0c;
+            --panel-bg: rgba(15, 15, 20, 0.85);
+            --border-color: #2a2b36;
+            --accent-green: #00ff66;
+            --accent-purple: #9d4edd;
+            --text-main: #e2e8f0;
+            --text-muted: #64748b;
+            --font-stack: 'Courier New', Courier, monospace;
+        }
+
+        /* --- RESET & BASE STYLES --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-stack);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* --- THE MATRIX BACKGROUND VIDEO CONTAINER --- */
+        .video-bg-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -2;
+            overflow: hidden;
+            background: radial-gradient(circle, rgba(0,0,0,0.4) 0%, rgba(10,10,12,1) 100%);
+        }
+
+        /* Landscape Video (Center Background) */
+        .bg-video-landscape {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: cover;
+            opacity: 0.25; /* Blends it darkly into the grunge theme */
+            filter: grayscale(40%) contrast(120%);
+        }
+
+        /* Vertical Videos (Left & Right Wings - Desktop Only) */
+        .side-video {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 280px;
+            height: 80vh;
+            object-fit: cover;
+            z-index: -1;
+            opacity: 0.35;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 0 20px rgba(0,0,0,0.7);
+            filter: hue-rotate(45deg) brightness(0.8);
+            display: none; /* Hidden on mobile */
+        }
+        .side-video.left { left: 40px; }
+        .side-video.right { right: 40px; }
+
+        /* --- MAIN LAYOUT HIERARCHY --- */
+        .main-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        /* --- CRT GRUNGE OVERLAY EFFECT --- */
+        .crt-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-top: 4px solid var(--accent-green);
+            padding: 30px;
+            margin-bottom: 30px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        .crt-panel::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        /* --- HEADER / SOCIALS SECTION --- */
+        header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 20px;
+        }
+
+        .pfp-container {
+            width: 140px;
+            height: 140px;
+            border-radius: 4px;
+            border: 2px solid var(--accent-green);
+            padding: 5px;
+            background: #000;
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.3);
+        }
+
+        .pfp-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: contrast(110%) brightness(90%);
+        }
+
+        .header-info h1 {
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: #fff;
+            text-shadow: 0 0 8px rgba(157, 78, 221, 0.6);
+            margin-bottom: 5px;
+        }
+
+        .header-info .sub-tag {
+            font-size: 0.85rem;
+            color: var(--accent-green);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        /* Social Links Grid */
+        .socials-headline {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 3px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .socials-headline::before, .socials-headline::after {
+            content: "///";
+            color: var(--accent-purple);
+        }
+
+        .socials-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .social-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            text-decoration: none;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .social-btn:hover {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+            background: rgba(0, 255, 102, 0.05);
+            box-shadow: 0 0 10px rgba(0, 255, 102, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* --- ABOUT SECTION --- */
+        .section-title {
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #fff;
+            margin-bottom: 15px;
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 5px;
+        }
+
+        .about-text {
+            font-size: 0.95rem;
+            color: #cbd5e1;
+            text-align: justify;
+        }
+
+        /* --- MUSIC TRACKS GRID --- */
+        .music-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .track-card {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .track-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .track-title {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent-purple);
+        }
+
+        .track-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Audio Player Styling */
+        audio {
+            width: 100%;
+            height: 32px;
+            outline: none;
+            filter: invert(90%) hue-rotate(180deg); /* Dark-mode audio bars natively */
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin-top: 40px;
+        }
+
+        /* --- RESPONSIVE MEDIA QUERIES --- */
+        @media (min-width: 1350px) {
+            /* Only show the dual vertical videos if screen is wide enough */
+            .side-video { display: block; }
+            .main-wrapper { max-width: 700px; }
+        }
+
+        @media (max-width: 600px) {
+            .socials-grid { grid-template-columns: 1fr; }
+            .main-wrapper { padding: 20px 10px; }
+            .crt-panel { padding: 20px; }
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>Hello World!</h1>
-        <p>Hosted entirely free on GitHub Pages.</p>
+
+    <!-- VIDEO BACKGROUND LAYER -->
+    <div class="video-bg-container">
+        <!-- Center Landscape Video Background -->
+        <!-- REPLACE 'landscape_video_url.mp4' with your link -->
+        <video class="bg-video-landscape" autoplay loop muted playsinline>
+            <source src="oneofone.mp4" type="video/mp4">
+        </video>
     </div>
+
+    <!-- Left & Right Wing Vertical Videos (Desktop Layout only) -->
+    <!-- REPLACE 'vertical_video_url.mp4' with your link -->
+    <video class="side-video left" autoplay loop muted playsinline>
+        <source src="blowthewhistlevisVERT.mp4" type="video/mp4">
+    </video>
+    <video class="side-video right" autoplay loop muted playsinline>
+        <source src="vertical_video_url.mp4" type="video/mp4">
+    </video>
+
+    <!-- CONTENT CONTAINER -->
+    <div class="main-wrapper">
+
+        <!-- HEADER & SOCIALS -->
+        <header class="crt-panel">
+            <div class="pfp-container">
+                <!-- REPLACE 'pfp.jpg' with your image file name or link -->
+                <img src="mebnw.png" alt="Profile Picture">
+            </div>
+            
+            <div class="header-info">
+                <h1>!Luck</h1>
+                <div class="sub-tag">[ AUDIO ARCHIVE // UNKNOWN ERROR ]</div>
+            </div>
+
+            <div class="socials-headline">socials</div>
+            
+            <div class="socials-grid">
+                <!-- REPLACE '#' with your actual social links -->
+                <a href="https://soundcloud.com/luckwastaken" target="_blank" class="social-btn">SoundCloud</a>
+                <a href="https://open.spotify.com/artist/4JMhV4uLsJwnIjAI4SvI4U?si=I_THoaPsRce5Rb-uMHYeVw" target="_blank" class="social-btn">Spotify</a>
+                <a href="https://www.instagram.com/luckmakesmusic/" target="_blank" class="social-btn">Instagram</a>
+                <a href="https://discord.gg/h4JDvJgWw" target="_blank" class="social-btn">Discord</a>
+            </div>
+        </header>
+
+        <!-- ABOUT ME -->
+        <section class="crt-panel">
+            <h2 class="section-title">SYSTEM_LOG // ABOUT</h2>
+            <p class="about-text">
+                Just make music.
+            </p>
+        </section>
+
+        <!-- AUDIO / SONG SHOWCASE GRID -->
+        <section class="crt-panel">
+            <h2 class="section-title">TRANSMISSIONS // 4 RECENT TRACKS</h2>
+            
+            <div class="music-grid">
+                
+                <!-- Track 1 -->
+                <div class="track-card">
+                    <div class="track-header">
+                        <span class="track-title">TRACK_01_KILLSWITCH</span>
+                        <span class="track-meta">MP3 // 140 BPM</span>
+                    </div>
+                    <!-- REPLACE 'song1.mp3' with your file name/link -->
+                    <audio controls><source src="song1.mp3" type="audio/mpeg"></audio>
+                </div>
+
+                <!-- Track 2 -->
+                <div class="track-card">
+                    <div class="track-header">
+                        <span class="track-title">TRACK_02_CYBER_JERK</span>
+                        <span class="track-meta">MP3 // 145 BPM</span>
+                    </div>
+                    <audio controls><source src="song2.mp3" type="audio/mpeg"></audio>
+                </div>
+
+                <!-- Track 3 -->
+                <div class="track-card">
+                    <div class="track-header">
+                        <span class="track-title">TRACK_03_PLUGG_NET</span>
+                        <span class="track-meta">MP3 // 130 BPM</span>
+                    </div>
+                    <audio controls><source src="song3.mp3" type="audio/mpeg"></audio>
+                </div>
+
+                <!-- Track 4 -->
+                <div class="track-card">
+                    <div class="track-header">
+                        <span class="track-title">TRACK_04_OVERCLOCK</span>
+                        <span class="track-meta">MP3 // 150 BPM</span>
+                    </div>
+                    <audio controls><source src="song4.mp3" type="audio/mpeg"></audio>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer>
+            <p>© 2026 CACHE COLLECTIVE. ALL RIGHTS RESERVED.</p>
+        </footer>
+
+    </div>
+
 </body>
 </html>
