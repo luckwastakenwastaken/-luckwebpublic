@@ -315,33 +315,28 @@
             .socials-grid { grid-template-columns: 1fr; }
             .main-wrapper { padding: 20px 10px; }
             .crt-panel { padding: 20px; }
-            .global-audio-controller { top: auto; bottom: 20px; right: 20px; } /* Shifts tracking control on mobile */
+            .global-audio-controller { top: auto; bottom: 20px; right: 20px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- HIDDEN AUDIO SOURCE FOR AUTOPLAY BACKING TRACK -->
-    <!-- REPLACE 'background_music.mp3' with your audio file name -->
     <audio id="bg-audio" loop>
         <source src="oneofone.mp3" type="audio/mpeg">
     </audio>
 
-    <!-- FIXED CONTROLLER (TOP RIGHT) -->
     <div class="global-audio-controller">
         <span style="color: var(--accent-green);" id="audio-status">AUDIO://STDBY</span>
         <button class="mute-btn" id="mute-toggle">MUTE</button>
         <input type="range" class="volume-slider" id="volume-control" min="0" max="1" step="0.05" value="0.5">
     </div>
 
-    <!-- VIDEO BACKGROUND LAYER -->
     <div class="video-bg-container">
         <video class="bg-video-landscape" autoplay loop muted playsinline>
             <source src="oneofone.mp4" type="video/mp4">
         </video>
     </div>
 
-    <!-- Left & Right Wing Vertical Videos (Desktop Layout only) -->
     <video class="side-video left" autoplay loop muted playsinline>
         <source src="blowthewhistlevisVERT.mp4" type="video/mp4">
     </video>
@@ -349,10 +344,8 @@
         <source src="blowthewhistlevisVERT.mp4" type="video/mp4">
     </video>
 
-    <!-- CONTENT CONTAINER -->
     <div class="main-wrapper">
 
-        <!-- HEADER & SOCIALS -->
         <header class="crt-panel">
             <div class="pfp-container">
                 <img src="mebnw.png" alt="Profile Picture">
@@ -373,7 +366,6 @@
             </div>
         </header>
 
-        <!-- ABOUT ME -->
         <section class="crt-panel">
             <h2 class="section-title">SYSTEM_LOG // ABOUT</h2>
             <p class="about-text">
@@ -381,18 +373,15 @@
             </p>
         </section>
 
-        <!-- SPOTIFY TRANSMISSIONS REGION -->
         <section class="crt-panel">
             <h2 class="section-title">TRANSMISSIONS // SPOTIFY ARCHIVE</h2>
             
             <div class="spotify-grid">
                 
-                <!-- Spotify Link / Track 1 -->
-                <!-- Replace URL inside src="..." with your own share embed links if needed -->
                 <div class="spotify-container">
-                  <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/track/7fvppMLfJxg1orzyQze7jy?utm_source=generator&theme=0&si=9387802c6ce14d59" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                    <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/track/7fvppMLfJxg1orzyQze7jy?utm_source=generator&theme=0&si=9387802c6ce14d59" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
 
-                <!-- Spotify Link / Track 2 -->
                 <div class="spotify-container">
                     <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/track/2kd4Cj34b5XAWO1V3kZvnc?utm_source=generator&theme=0&si=caf7d5663861430a" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
                 </div>
@@ -400,24 +389,21 @@
             </div>
         </section>
 
-        <!-- FOOTER -->
         <footer>
             <p>© 2026 CACHE COLLECTIVE. ALL RIGHTS RESERVED.</p>
         </footer>
 
     </div>
 
-    <!-- AUDIO ENGINE SCRIPT CONTROLLER -->
     <script>
         const audio = document.getElementById('bg-audio');
         const muteBtn = document.getElementById('mute-toggle');
         const volumeSlider = document.getElementById('volume-control');
         const statusText = document.getElementById('audio-status');
 
-        // Set baseline parameters
         audio.volume = volumeSlider.value;
 
-        // Bypass browser automation blocks on first user interaction click
+        // Interactive click event listener to initialize the browser's audio context
         window.addEventListener('click', () => {
             if (audio.paused && statusText.innerText === "AUDIO://STDBY") {
                 audio.play()
@@ -425,11 +411,10 @@
                         statusText.innerText = "AUDIO://PLAYING";
                         statusText.style.color = "#9d4edd";
                     })
-                    .catch(err => console.log("Autoplay context initialization waiting."));
+                    .catch(err => console.log("Autoplay context setup failed:", err));
             }
         });
 
-        // Volume manipulation slider mapping
         volumeSlider.addEventListener('input', (e) => {
             audio.volume = e.target.value;
             if (audio.volume > 0) {
@@ -438,7 +423,6 @@
             }
         });
 
-        // Mute state logic handler
         muteBtn.addEventListener('click', () => {
             if (audio.muted) {
                 audio.muted = false;
