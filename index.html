@@ -33,6 +33,46 @@
             line-height: 1.6;
         }
 
+        /* --- SPLASH GATE SCREEN (BUILT-IN FIX FOR AUDIO AUTOPLAY) --- */
+        #splash-gate {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #050507;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            font-family: var(--font-stack);
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        
+        .enter-btn {
+            background: transparent;
+            border: 1px solid var(--accent-green);
+            color: var(--accent-green);
+            padding: 15px 30px;
+            font-family: var(--font-stack);
+            font-size: 1.1rem;
+            font-weight: bold;
+            letter-spacing: 3px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.2);
+            text-transform: uppercase;
+        }
+
+        .enter-btn:hover {
+            background: rgba(0, 255, 102, 0.1);
+            box-shadow: 0 0 25px rgba(0, 255, 102, 0.4);
+        }
+
+        .gate-tag {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+        }
+
         /* --- GLOBAL BACKGROUND AUDIO CONTROLLER (TOP RIGHT) --- */
         .global-audio-controller {
             position: fixed;
@@ -321,6 +361,11 @@
 </head>
 <body>
 
+    <div id="splash-gate">
+        <button class="enter-btn" id="gate-btn">LOAD ARCHIVE</button>
+        <span class="gate-tag">[ ENCRYPTED CONNECTION ]</span>
+    </div>
+
     <audio id="bg-audio" loop>
         <source src="oneofone.mp3" type="audio/mpeg">
     </audio>
@@ -400,19 +445,29 @@
         const muteBtn = document.getElementById('mute-toggle');
         const volumeSlider = document.getElementById('volume-control');
         const statusText = document.getElementById('audio-status');
+        const gate = document.getElementById('splash-gate');
+        const gateBtn = document.getElementById('gate-btn');
 
         audio.volume = volumeSlider.value;
 
-        // Interactive click event listener to initialize the browser's audio context
-        window.addEventListener('click', () => {
-            if (audio.paused && statusText.innerText === "AUDIO://STDBY") {
-                audio.play()
-                    .then(() => {
-                        statusText.innerText = "AUDIO://PLAYING";
-                        statusText.style.color = "#9d4edd";
-                    })
-                    .catch(err => console.log("Autoplay context setup failed:", err));
-            }
+        // Force launch straight from the splash screen button interaction
+        gateBtn.addEventListener('click', () => {
+            audio.play()
+                .then(() => {
+                    statusText.innerText = "AUDIO://PLAYING";
+                    statusText.style.color = "#9d4edd";
+                    // Hide the splash panel smoothly
+                    gate.style.opacity = '0';
+                    setTimeout(() => {
+                        gate.style.visibility = 'hidden';
+                    }, 500);
+                })
+                .catch(err => {
+                    console.log("Audio load error:", err);
+                    // Hide gate anyway so users can see the site if file fails
+                    gate.style.opacity = '0';
+                    gate.style.visibility = 'hidden';
+                });
         });
 
         volumeSlider.addEventListener('input', (e) => {
